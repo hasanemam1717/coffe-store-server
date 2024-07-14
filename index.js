@@ -11,7 +11,7 @@ app.use(express.json());
 
 // database related code
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.9fglmuq.mongodb.net/?appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -27,6 +27,33 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
+    const db = client.db("coffeeDb").collection("coffee");
+
+    app.get('/coffee',  async(req,res) =>{
+        const corsor =  db.find();
+        const result = await corsor.toArray();
+        res.send(result)
+    })
+
+    app.post("/coffee", async (req, res) => {
+      const newCoffee = req.body;
+      const result = await db.insertOne(newCoffee);
+      res.send(result);
+    });
+
+    app.get('/coffee/:id',async (req,res) =>{
+        const id = req.params.id;
+        const query = {_id:new ObjectId(id)};
+        const result = await db.findOne(query);
+        res.send(result)
+    })
+
+    app.delete('/coffee/:id',async(req,res) =>{
+        const id = req.params.id;
+        const query ={_id:new ObjectId(id)}
+        const result = await db.deleteOne(query);
+        res.send(result)
+    })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
